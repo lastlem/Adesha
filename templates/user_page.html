@@ -449,10 +449,16 @@
 
             if (env.audio_path) {
                 modalAudio.src = env.audio_path;
+                modalAudio.load(); // Required for some mobile browsers
                 modalAudioContainer.classList.remove('hidden');
+                
+                modalAudio.onerror = () => {
+                    console.error("Audio failed to load:", env.audio_path);
+                };
             } else {
                 modalAudioContainer.classList.add('hidden');
                 modalAudio.pause();
+                modalAudio.src = "";
             }
 
             modal.classList.remove('hidden');

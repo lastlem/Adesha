@@ -1,8 +1,16 @@
 from flask import Flask, jsonify, request, render_template, redirect, url_for
 import db
 import os
+import mimetypes
 from werkzeug.utils import secure_filename
 from uuid import uuid4
+
+# Register common audio MIME types for Windows environments
+mimetypes.add_type('audio/mpeg', '.mp3')
+mimetypes.add_type('audio/mp4', '.m4a')
+mimetypes.add_type('audio/ogg', '.ogg')
+mimetypes.add_type('audio/wav', '.wav')
+mimetypes.add_type('audio/webm', '.webm')
 
 app = Flask(__name__)
 
@@ -71,7 +79,10 @@ def create_envelope():
         audio_file = request.files.get('audio')
 
         image_path = save_uploaded_file(image_file, app.config['IMAGE_FOLDER'])
+        if image_path: image_path = '/' + image_path.lstrip('/')
+        
         audio_path = save_uploaded_file(audio_file, app.config['AUDIO_FOLDER'])
+        if audio_path: audio_path = '/' + audio_path.lstrip('/')
 
         envelope_id = db.create_envelope(title, text_message, recipient, image_path, audio_path)
         return jsonify({"id": envelope_id, "message": "Envelope created successfully"}), 201
@@ -111,10 +122,12 @@ def update_envelope(envelope_id):
         image_path = current['image_path']
         if image_file:
             image_path = save_uploaded_file(image_file, app.config['IMAGE_FOLDER'])
+            if image_path: image_path = '/' + image_path.lstrip('/')
 
         audio_path = current['audio_path']
         if audio_file:
             audio_path = save_uploaded_file(audio_file, app.config['AUDIO_FOLDER'])
+            if audio_path: audio_path = '/' + audio_path.lstrip('/')
 
         db.update_envelope(envelope_id, title, text_message, recipient, image_path, audio_path)
         return jsonify({"message": "Envelope updated successfully"}), 200
